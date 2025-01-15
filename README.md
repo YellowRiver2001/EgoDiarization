@@ -10,6 +10,6 @@ download sfd_face.pth in https://drive.google.com/file/d/1hd6QgCeJkeBWJ8rkTnOYSh
 
 ## Acknowledgments：  
 Thanks for the support of the following source repositories for this research：
-1.The speaker detection part of the code is modified from [this repository](https://github.com/Junhua-Liao/Light-ASD).
-2.The spectral clustering part of the code is modified from [this repository](https://gitee.com/Wilder_ting/speaker_diarization)
-3.The global tracking code is modified from [this repository](https://github.com/EGO4D/audio-visual).
+1.The speaker detection part of the code is modified from [this repository](https://github.com/Junhua-Liao/Light-ASD).  
+2.The spectral clustering part of the code is modified from [this repository](https://gitee.com/Wilder_ting/speaker_diarization).  
+3.The global tracking code is modified from [this repository](https://github.com/EGO4D/audio-visual).  
