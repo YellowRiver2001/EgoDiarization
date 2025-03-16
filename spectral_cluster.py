@@ -194,7 +194,7 @@ def cluster_probability(embeddings, p=.01, num_spks_probabilitys=None, min_num_s
         eig_values, eig_vectors = scipy.linalg.eigh(M)
         diff = softmax(np.diff(eig_values[:max_num_spks]))
 
-        print("diff:",diff)
+        # print("diff:",diff)
         
         if num_spks_probabilitys is  None:
             num_spks = np.argmax(np.diff(eig_values[:max_num_spks + 1])) + 1
@@ -202,7 +202,6 @@ def cluster_probability(embeddings, p=.01, num_spks_probabilitys=None, min_num_s
             if isinstance(num_spks_probabilitys, float):
                 diff[0] = rate*num_spks_probabilitys + (1-rate)*diff[0]
             else:
-                print(num_spks_probabilitys)
                 if len(num_spks_probabilitys)<=len(diff):
                     for i,num_spks_probability in enumerate(num_spks_probabilitys):
                         diff[i] = rate*num_spks_probability + (1-rate)*diff[i]

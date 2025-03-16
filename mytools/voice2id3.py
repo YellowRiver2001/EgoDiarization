@@ -1,4 +1,3 @@
-
 import sys, time, os, tqdm, torch,  glob, cv2, pickle, numpy, pdb, math
 import soundfile
 from moviepy.editor import *
@@ -13,6 +12,7 @@ import sys
 from spectral_cluster import cluster,cluster_probability
 from VocalPrint import *
 import itertools
+from mytools import speech_enhancement
 
 #将音频段划分为子音频段
 def generate_subsegments(segments, subseg_length=1500, subseg_step=750):
@@ -138,13 +138,11 @@ def cal_speaker_vector(array,segments):
 #计算每个类中平均值
 def embeddings_mean(segments_embeddings,labels):
 	m = max(labels)+1
-	print("m:",m)
 	class_embeddings = [[] for _ in range(m)]
 	i = 0
 	for embedding in segments_embeddings:
 			class_embeddings[labels[i]].append(embedding)
 			i=i+1
-	# print(class_embeddings)
 	id_embeddings = []
 	for class_embedding in class_embeddings:
 			id_embeddings.append(np.mean(np.array(class_embedding),axis=0))
@@ -214,7 +212,6 @@ def cal_class_mean_sim(similarity_matrix,labels):
 	for prince in similarity_matrix:
 			class_sims[labels[i]].append(prince[labels[i]])
 			i=i+1
-	print(class_sims)
 	min_sim = []
 	for class_sim in class_sims:
 			min_sim.append(np.mean(class_sim))
@@ -1582,7 +1579,7 @@ def voice2id_pyannote2_final(save_path,num_test,a):
 
 
 #不微调的超参实验
-def voice2id_pyannote2_final_no_fine_tuned_hyper(save_path,num_test,a):
+def voice2id_pyannote2_final_no_fine_tuned_hyper(save_path,num_test,a,ans,model):
     # 视频文件路径
     audio_path = save_path+'audio.wav' # 指定的音频文件路径
     segments_path = save_path+'pyannote_powerset_pretrained_segments.txt'   #只用segmentation模型的结果，没有微调
@@ -1741,10 +1738,11 @@ def voice2id_pyannote2_final_no_fine_tuned_hyper(save_path,num_test,a):
 
 
 #微调过后的超参实验
-def voice2id_pyannote2_final_fine_tuned_hyper(save_path,num_test,a):
+def voice2id_pyannote2_final_fine_tuned_hyper(fn, save_path, num_test, a):
+#voice2id3.voice2id_pyannote2_final_fine_tuned_hyper(wav_path, fn, save_path, num_test, a, ans,model)
     # 视频文件路径
-    audio_path = save_path+'audio.wav' # 指定的音频文件路径
-    segments_path = save_path+'pyannote_powerset_Ego4d_segments.txt'   #只用segmentation模型的结果,微调版本
+    audio_path = f"{save_path}/mid/{fn}/audio.wav" # 指定的音频文件路径
+    segments_path = f"{save_path}/mid/{fn}/pyannote_powerset_Ego4d_segments.txt" #只用segmentation模型的结果,微调版本
 
     segments = []
     with open(segments_path,'r') as f:
@@ -1763,14 +1761,14 @@ def voice2id_pyannote2_final_fine_tuned_hyper(save_path,num_test,a):
         person_num=None
         #聚类数辅助
         # 读取说话分数矩阵
-        file_path = save_path+'speaker_global_EGO4d.txt'  # 文件路径   Ego4d
+        segments_path = f"{save_path}/mid/{fn}/powerset_ego4d_segments.txt"
+        file_path = f"{save_path}/mid/{fn}/speaker_global_EGO4d.txt"  # 文件路径   Ego4d
         # file_path = save_path+'speaker_global_Ego4d.txt'  # 文件路径  Easycom
         # file_path = save_path+'speaker_global_Ego4d_VGG.txt'  # 文件路径  
 
 
         array = read_2d_array_from_file(file_path)
         person_scores=[]
-        person_score = []
         for row in array:
             count = 0 
             for item in row:
@@ -1783,7 +1781,7 @@ def voice2id_pyannote2_final_fine_tuned_hyper(save_path,num_test,a):
         speakers_probabilities = calculate_probabilities(person_scores)
         num_spks_probabilitys = speakers_probabilities
         person_num = find_max_index(speakers_probabilities) +1
-        print("visual:",person_num)
+        print("ASD visual:",person_num)
         #计算说话分数向量
         speaker_vector = cal_speaker_vector(array,segments)
 
@@ -1791,33 +1789,12 @@ def voice2id_pyannote2_final_fine_tuned_hyper(save_path,num_test,a):
         segments_embeddings = VocalPrint_embeddings(audio_path,segments)  #计算每个声音片段的声纹向量与说话分数向量并将其合并,然后进行谱聚类
         segments_embeddings = np.concatenate((segments_embeddings, speaker_vector), axis=1)  #合并
 
-
         total_range = [0,300000]
         #声音增强后处理
-
-        # split_path = save_path+'split_wav_powerset/'   #用于存放被分段的音频文件
-        # clean_path = save_path+'clean_wav_powerset/'   #用于存放被音频增强（去噪）的音频文件
-        # split_path = save_path+'split_wav_powerset_segments/'   #用于存放被分段的音频文件    powerset第一阶段segmataiton的segments
-        # clean_path = save_path+'clean_wav_powerset_segments/'   #用于存放被音频增强（去噪）的音频文件    
-        split_path = save_path+'split_wav_powerset_Ego4d_segments/'   #用于存放被分段的音频文件    powerset第一阶段segmataiton的segments
-        clean_path = save_path+'clean_wav_powerset_Ego4d_segments/'   #用于存放被音频增强（去噪）的音频文件   
-        # split_path = save_path+'split_wav/'   #用于存放被分段的音频文件
-        # clean_path = save_path+'clean_wav/'   #用于存放被音频增强（去噪）的音频文件
-
-        #已经跑过一遍，这边暂时先注释
-        # speech_enhancement.Enhance(audio_path,segments,split_path,clean_path,total_range,'split',ans)
-        clean_audio_path = clean_path+'clean_audio.wav'   #分割去噪后的音频文件路径
-        # 对去噪后的音频进行重新语音活动检测，这里检测过了，就不用检测了
-        # clean_segments = Fsmn_VAD(clean_audio_path,save_path+'clean_segments.txt',model)
-        clean_segments = np.loadtxt(save_path+'clean_segments.txt')
-        # clean_segments = np.loadtxt(save_path+'clean_segments_pretrained.txt')
-        # clean_segments = np.loadtxt(save_path+'clean_nosplit_segments.txt')   #这里其实时powerset结果按照split方法增强后的结果，这里名字当时弄错了
-        #找到clean_segments中与segments没有交集的区间，即通过去噪重新检测到的语音段
+        clean_segments = np.loadtxt(f"{save_path}/mid/{fn}/clean_segments.txt")
         no_segments = add_no_segments(segments,clean_segments.tolist(),total_range)
-        print("..............................................................")
-        print("no_segments:",no_segments)
-        # no_segments = find_non_intersecting_segments(segments,clean_segments.tolist())
 
+        # no_segments = find_non_intersecting_segments(segments,clean_segments.tolist())
 
         #去掉过短的segments：否则在计算每个segment的时候会因为过短而出现报错
         my_no_segments = copy.deepcopy(no_segments)  #这里需要深度拷贝
@@ -1828,15 +1805,10 @@ def voice2id_pyannote2_final_fine_tuned_hyper(save_path,num_test,a):
         
         # print(segments)
         #进行聚类
+
+
         labels,person_num = cluster_probability(segments_embeddings,num_spks_probabilitys=num_spks_probabilitys,rate = a)
 
-        # print(labels)
-        # if num_test in [4,5]:
-        #     id_final = labels
-        #     segments_final = segments
-
-        # if num_test in [1,3]:
-        #     person_num = max(labels)+1
 
         #对划分好同一id的语音段合并进行声纹特征提取，得到每个人的声纹特征
         id_embeddings = embeddings_mean(segments_embeddings,labels)
@@ -1863,9 +1835,11 @@ def voice2id_pyannote2_final_fine_tuned_hyper(save_path,num_test,a):
             sub_embeddings = np.concatenate((sub_embeddings, no_speaker_vector), axis=1)  #合并
             #将这些子段声纹向量和说话人代表声纹向量进行相似度比对，大于0.65的将其归为说话语音段
             sub_similarity_matrix=cosine_similarity(sub_embeddings,id_embeddings)
-            save_matrix_to_txt(sub_similarity_matrix,save_path+"voiceprint_id_similarity_no_pyannote_study"+str(num_test)+".txt")
+            save_matrix_to_txt(sub_similarity_matrix, f"{save_path}/mid/{fn}/voiceprint_id_similarity_no_pyannote_study.txt")
             # similarity_matrix=cosine_similarity(segments_embeddings,id_embeddings)
             #计算每个类中的与其平均声纹向量的相似度的平均值
+            
+            ###########################################################以上有问题
             class_mean_sim = cal_class_mean_sim(similarity_matrix,final_id)
 
             no_final_id=[]
@@ -1893,9 +1867,8 @@ def voice2id_pyannote2_final_fine_tuned_hyper(save_path,num_test,a):
 
 
 
-        np.savetxt(save_path+'0final_segments_powerset_final_study11_'+str(a)+'_segments.txt',segments_final,fmt='%d')
-
-        np.savetxt(save_path+'0id_segments_powerset_final_study11_'+str(a)+'.txt',id_final,fmt='%d')
+        np.savetxt(f"{save_path}/mid/{fn}/0final_segments_powerset_final_study11_{a}_segments.txt", segments_final, fmt='%d')
+        np.savetxt(f"{save_path}/mid/{fn}/0id_segments_powerset_final_study11_{a}.txt", id_final, fmt='%d')
 
         return id_final,segments_final
 

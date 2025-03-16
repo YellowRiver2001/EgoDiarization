@@ -1,0 +1,5 @@
+Number of files processed: 50
+Mean DER: 0.4768
+Mean FA: 0.1072
+Mean MISS: 0.2231
+Mean SER: 0.1466
