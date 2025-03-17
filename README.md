@@ -2,6 +2,9 @@ Egocentric Speaker Diarization with Vision-Guided Clustering and Adaptive Speech
 ---
 
 Our paper is accepted by **ICASSP-2025**
+<p align="center">
+<img src="https://github.com/yu-haoyuan/EgoDiarization/tree/main/dataset/fig1.png" width=95%>
+<p>
 
 Testing
 ---
