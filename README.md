@@ -2,7 +2,9 @@ Egocentric Speaker Diarization with Vision-Guided Clustering and Adaptive Speech
 
 > [Egocentric Speaker Diarization with Vision-Guided Clustering and Adaptive Speech Re-detection] coming soon
 > [He Huang](https://ieeexplore.ieee.org/author/677931166674759), [Haoyuan Yu](https://yu-haoyuan.github.io/), [Daibo Liu](https://sites.google.com/site/dbliuuestc/), [Haowen Chen](http://csee.hnu.edu.cn/people/chenhaowen), [Minjie Cai](https://cai-mj.github.io/)
+
 > Hunan University
+
 > ICASSP 2025
 ---
 
