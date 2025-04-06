@@ -1,13 +1,11 @@
-import os
 from collections import OrderedDict
-import concurrent.futures as cf
 import kaldiio
 import numpy as np
 import scipy.linalg
 from sklearn.cluster._kmeans import k_means
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import OPTICS
-from scipy.cluster.hierarchy import linkage, dendrogram,fcluster
+from scipy.cluster.hierarchy import linkage,fcluster
 from cluster_test  import *
 
 
