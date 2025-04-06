@@ -1,18 +1,11 @@
-
-import sys, time, os, tqdm, torch,  glob, cv2, pickle, numpy, pdb, math
-import soundfile
 from moviepy.editor import *
-import ast
-from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from mytools import speech_enhancement
 from mytools.fsmn_VAD import Fsmn_VAD
-import os
-import cv2 as cv
-import sys
 from spectral_cluster import cluster,cluster_probability
 from VocalPrint import *
 import itertools
+import os
 
 #将音频段划分为子音频段
 def generate_subsegments(segments, subseg_length=1500, subseg_step=750):
@@ -122,6 +115,16 @@ def cosine_similarity(M1, M2):
 def save_matrix_to_txt(matrix, filename):
 	np.savetxt(filename, matrix, delimiter='\t')
 
+'''
+def cal_speaker_vector use the asd output: array and pyannote output: segments
+example: if the array like [[0, 0, 0.1, 0.2, 0][0, 0, 0.1, 0.2, 0]]there are 2 speakers
+and the segments like [[0, 1000], [2000, 3000]] 
+the speaker_vectors have n rows, which is the number of segments rows, 
+and 2 columns, which is the number of speakers
+so we get like this nparray
+    [0.55, 0],  # segment 1 has 2 speakers, the first speaker has 0.55 score, the second speaker has 0.55 score
+    [0, 0.9]    # segment 2 has 2 speakers, the first speaker has 0 score, the second speaker has 0.9 score
+'''
 def cal_speaker_vector(array,segments):
     speaker_vectors = []
     for segment in segments:
@@ -138,7 +141,7 @@ def cal_speaker_vector(array,segments):
 #计算每个类中平均值
 def embeddings_mean(segments_embeddings,labels):
 	m = max(labels)+1
-	print("m:",m)
+	# print("m:",m)
 	class_embeddings = [[] for _ in range(m)]
 	i = 0
 	for embedding in segments_embeddings:
@@ -184,6 +187,7 @@ def find_max_index(lst):
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
 def score_to_probability(score):
     # 将分数映射到概率范围
     if score<=0:
@@ -199,7 +203,7 @@ def cal_class_min_sim(similarity_matrix,labels):
 	for prince in similarity_matrix:
 			class_sims[labels[i]].append(prince[labels[i]])
 			i=i+1
-	print(class_sims)
+	# print(class_sims)
 
 	min_sim = []
 	for class_sim in class_sims:
@@ -214,7 +218,7 @@ def cal_class_mean_sim(similarity_matrix,labels):
 	for prince in similarity_matrix:
 			class_sims[labels[i]].append(prince[labels[i]])
 			i=i+1
-	print(class_sims)
+	# print(class_sims)
 	min_sim = []
 	for class_sim in class_sims:
 			min_sim.append(np.mean(class_sim))
@@ -232,14 +236,11 @@ def find_missing_intervals(intervals, total_range):
     for interval in intervals:
         start, end = interval
 
-        # 如果当前开始位置小于当前区间的开始值，则有一个缺失的区间
         if current_start < start:
             missing_intervals.append([current_start, start])
 
-        # 更新当前开始位置为当前区间的结束值
         current_start = max(current_start, end)
 
-    # 检查最后一个区间后的缺失部分
     if current_start < total_range[1]:
         missing_intervals.append([current_start, total_range[1]])
 
@@ -253,15 +254,10 @@ def interval_intersection(list1, list2):
         start1, end1 = list1[i]
         start2, end2 = list2[j]
 
-        # 找到交集的开始和结束
         start = max(start1, start2)
         end = min(end1, end2)
-
-        # 如果有交集，就加入结果列表
         if start <= end:
             intersections.append([start, end])
-
-        # 移动指针到下一个区间
         if end1 < end2:
             i += 1
         else:
@@ -288,10 +284,15 @@ def add_no_segments(segments1, segments2,total_range):
 #rate,clean_segments,add_no_segments.
 
 #没有微调的消融实验
-def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
+def voice2id_pyannote2_final(file_id, audio_path_ori, segments_path_ori,num_test,a,ans,model):
     # 视频文件路径
-    audio_path = save_path+'audio.wav' # 指定的音频文件路径
-    segments_path = save_path+'pyannote_powerset_pretrained_segments.txt'   #只用segmentation模型的结果
+    audio_path = audio_path_ori # 指定的音频文件路径
+    segments_path = os.path.join(segments_path_ori, "test_powerset_pretrained_segments.txt")   #只用segmentation模型的结果
+    save_path = segments_path_ori
+    # print("save_path", save_path)
+    #segments = [[2866, 3754], [4061, 5511], [5221, 6313], [8566, 9795], [14573, 16075]]
+    # print("audio_path:",audio_path)
+    # print("segments_path:",segments_path)
 
     segments = []
     with open(segments_path,'r') as f:
@@ -301,21 +302,24 @@ def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
             segments.append([int(row[0]),int(row[1])])
     import copy
     #去掉过短的segments：否则在计算每个segment的时候会因为过短而出现报错
+    #去掉了小于200的segments,也就是小于200ms的segments 0.2s
     my_segments = copy.deepcopy(segments)  #这里需要深度拷贝
     for segment in my_segments:
-        if segment[1]-segment[0]<200:
+        if segment[1]-segment[0]<400:
             segments.remove([segment[0],segment[1]])
-
+    # 使用列表推导式确保过滤小段
+    # segments = [seg for seg in segments if seg[1] - seg[0] >= 500]  # 增加阈值到500ms更安全
+    # print("segments:",segments)
     if num_test == 8:
         person_num=None
         #聚类数辅助
         # 读取说话分数矩阵
-        # file_path = save_path+'speaker_global_EGO4d.txt'  # 文件路径   Ego4d
-        file_path = save_path+'speaker_global_Ego4d.txt'  # 文件路径  
+        #此文件格式为每一行代表一个说话人的说话分数,例如一个视频中检测到3人说话
+        #则文件有3行,列为帧数,其中概率为说话人概率
+        file_path = save_path+'/speaker_global_EGO4d.txt'  # 文件路径  
 
         array = read_2d_array_from_file(file_path)
         person_scores=[]
-        person_score = []
         for row in array:
             count = 0 
             for item in row:
@@ -324,15 +328,19 @@ def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
             if count>100:   #这里计算当前id总共被追踪到的帧数，小于100的默认是全局追踪遗漏（一般是一晃而过的）的，不计入总人数
                 # person_num = person_num+1
                 person_scores.append(score_to_probability(max(row)))
-        # print(person_num)
+        # 将一行中最大的概率值提取出来,并将其转换为概率值(如果全局概率都小于0,返回0)
+        # person_scores的形状为
         speakers_probabilities = calculate_probabilities(person_scores)
+        # get the speakers_probabilities like [0, 0.1, 0.7] when there are 2 speakers
+        # no spekaer with 0, 1 spekaer with 0.1, 2 speakers with 0.7 
         num_spks_probabilitys = speakers_probabilities
-        person_num = find_max_index(speakers_probabilities) +1
-        print("visual:",person_num)
+        person_num = find_max_index(speakers_probabilities) +1 # asd does not get the camera speaker
+        # print("visual:",person_num)
         #计算说话分数向量
         speaker_vector = cal_speaker_vector(array,segments)
 
-        #计算视听特征向量
+        #segments_embeddings1 is (N, 192) which N is the counts of segments
+        #speaker_vector is (N, speakers) 
         segments_embeddings = VocalPrint_embeddings(audio_path,segments)  #计算每个声音片段的声纹向量与说话分数向量并将其合并,然后进行谱聚类
         segments_embeddings = np.concatenate((segments_embeddings, speaker_vector), axis=1)  #合并
 
@@ -342,8 +350,8 @@ def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
 
         # split_path = save_path+'split_wav_powerset/'   #用于存放被分段的音频文件
         # clean_path = save_path+'clean_wav_powerset/'   #用于存放被音频增强（去噪）的音频文件
-        split_path = save_path+'split_wav_powerset_segments/'   #用于存放被分段的音频文件    powerset第一阶段segmataiton的segments
-        clean_path = save_path+'clean_wav_powerset_segments/'   #用于存放被音频增强（去噪）的音频文件    
+        split_path = save_path+'/split_wav_powerset_segments/'   #用于存放被分段的音频文件    powerset第一阶段segmataiton的segments
+        clean_path = save_path+'/clean_wav_powerset_segments/'   #用于存放被音频增强（去噪）的音频文件    
         # split_path = save_path+'split_wav_powerset_Ego4d_segments/'   #用于存放被分段的音频文件    powerset第一阶段segmataiton的segments
         # clean_path = save_path+'clean_wav_powerset_Ego4d_segments/'   #用于存放被音频增强（去噪）的音频文件   
         # split_path = save_path+'split_wav/'   #用于存放被分段的音频文件
@@ -352,10 +360,10 @@ def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
         # if a==0:
         # #已经跑过一遍，这边暂时先注释
         speech_enhancement.Enhance(audio_path,segments,split_path,clean_path,total_range,'split',ans)
-        clean_audio_path = clean_path+'clean_audio.wav'   #分割去噪后的音频文件路径
+        clean_audio_path = clean_path+'/clean_audio.wav'   #分割去噪后的音频文件路径
         #对去噪后的音频进行重新语音活动检测，这里检测过了，就不用检测了
         # if a==0:
-        clean_segments = Fsmn_VAD(clean_audio_path,save_path+'clean_segments_pretrained.txt',model)
+        clean_segments = Fsmn_VAD(clean_audio_path,save_path+'/clean_segments_pretrained.txt',model)
         # clean_segments = np.loadtxt(save_path+'clean_segments_pretrained.txt')
         # clean_segments = np.loadtxt(save_path+'clean_nosplit_segments.txt')   #这里其实时powerset结果按照split方法增强后的结果，这里名字当时弄错了
         #找到clean_segments中与segments没有交集的区间，即通过去噪重新检测到的语音段
@@ -371,7 +379,6 @@ def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
         no_speaker_vector = cal_speaker_vector(array,no_segments)
         
         # print(segments)
-        #进行聚类
         labels,person_num = cluster_probability(segments_embeddings,num_spks_probabilitys=num_spks_probabilitys,rate = a)
 
         #对划分好同一id的语音段合并进行声纹特征提取，得到每个人的声纹特征
@@ -382,7 +389,7 @@ def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
             sub_embeddings = np.concatenate((sub_embeddings, no_speaker_vector), axis=1)  #合并
             #将这些子段声纹向量和说话人代表声纹向量进行相似度比对，大于0.65的将其归为说话语音段
             sub_similarity_matrix=cosine_similarity(sub_embeddings,id_embeddings)
-            save_matrix_to_txt(sub_similarity_matrix,save_path+"voiceprint_id_similarity_no_pyannote_study"+str(num_test)+".txt")
+            save_matrix_to_txt(sub_similarity_matrix,save_path+"/voiceprint_id_similarity_no_pyannote_study"+str(num_test)+".txt")
             similarity_matrix=cosine_similarity(segments_embeddings,id_embeddings)
             #计算每个类中的与其平均声纹向量的相似度的平均值
             class_mean_sim = cal_class_mean_sim(similarity_matrix,labels)
@@ -411,12 +418,9 @@ def voice2id_pyannote2_final(save_path,num_test,a,ans,model):
             segments_final = segments
 
 
-        np.savetxt(save_path+'final_segments_powset_final_study'+str(num_test)+'_segments.txt',segments_final,fmt='%d')
-        #np.savetxt(save_path+'segments.txt',segments,)
-        np.savetxt(save_path+'id_segments_powset_final_study'+str(num_test)+'.txt',id_final,fmt='%d')
-
-        #print("id_segments_pyannote3.1:",id_final)
-
-
+        np.savetxt(save_path+'/final_segments_powset_final_study'+str(num_test)+'_segments.txt',segments_final,fmt='%d')
+        np.savetxt(save_path+'/id_segments_powset_final_study'+str(num_test)+'.txt',id_final,fmt='%d')
         return id_final,segments_final
+
+
 

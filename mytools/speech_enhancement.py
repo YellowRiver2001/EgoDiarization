@@ -1,7 +1,7 @@
 from pydub import AudioSegment
 import os
-from modelscope.pipelines import pipeline
-from modelscope.utils.constant import Tasks
+# from modelscope.pipelines import pipeline
+# from modelscope.utils.constant import Tasks
 import numpy as np
 
 
@@ -52,7 +52,7 @@ def clean_audio(input_audio_path, segments, output_dir,clean_dir,choice,ans):
         subaudio_path = os.path.join(output_dir, f"segment_{i+1}.wav")
         audio_segment.export(subaudio_path, format="wav")
         
-        print(f"Saved segment {i+1} from {start_time}ms to {end_time}ms as {subaudio_path}")
+        # print(f"Saved segment {i+1} from {start_time}ms to {end_time}ms as {subaudio_path}")
         sub_clean_path = clean_dir+f"clean_segment_{i+1}.wav"
         result = ans(subaudio_path,output_path=sub_clean_path)
         clean_segment = AudioSegment.from_file(sub_clean_path)

@@ -1,4 +1,4 @@
-## main
+
 Egocentric Speaker Diarization with Vision-Guided Clustering and Adaptive Speech Re-detection
 
 > [Egocentric Speaker Diarization with Vision-Guided Clustering and Adaptive Speech Re-detection] coming soon <br>
@@ -11,6 +11,8 @@ Our paper is accepted by **ICASSP-2025**
 
 ![image](https://github.com/yu-haoyuan/EgoDiarization/blob/main/fig1.png)
 
+
+=======
 ## Environment：
 ```python
 pip install -r requirements.txt
@@ -43,7 +45,6 @@ Thanks for the support of the following source repositories for this research：
 1.The speaker detection part of the code is modified from [this repository](https://github.com/Junhua-Liao/Light-ASD).  
 2.The spectral clustering part of the code is modified from [this repository](https://gitee.com/Wilder_ting/speaker_diarization).  
 3.The global tracking code is modified from [this repository](https://github.com/EGO4D/audio-visual).  
-
 
 
 

@@ -26,7 +26,6 @@ def compute_fbank(wav, num_mel_bins=80,
                   sample_frequency=16000,
                   subseg_cmn=True):
     wav = wav.unsqueeze(0) * (1 << 15)
-    # print("wav:",wav)
     feat = Kaldi.fbank(
         wav, num_mel_bins=num_mel_bins, frame_length=frame_length, frame_shift=frame_shift, dither=dither, sample_frequency=sample_frequency, window_type='hamming', use_energy=False)
     if not subseg_cmn:
@@ -51,25 +50,17 @@ def get_speech_segments(utt_to_segments, wav_path):
     speech_segments_id = []
     speech_segments = []
     audio_name = wav_path.split('/')[-1][:-4]
-    # print(audio_name)
     segments = utt_to_segments[audio_name]
     signal, sr = torchaudio.load(wav_path)
     signal = signal.squeeze()
     for seg, begin, end in segments:
-        # speech_segments_id.append(seg)
-        # #print(len(signal[int(begin * sr): int(end * sr)]))
-        # speech_segments.append(signal[int(begin * sr): int(end * sr)])
         if end-begin > 0.4:
-            #print("1111111111111111")
             speech_segments_id.append(seg)
-            #print(len(signal[int(begin * sr): int(end * sr)]))
             speech_segments.append(signal[int(begin * sr): int(end * sr)])
         else:
-            #print("2222222222222222")
             speech_segments_id.append(seg)
             speech_segment = signal[int(begin * sr): int(end * sr)]
             times =int( 0.4/(end-begin) + 1 )
-            # 使用 Python 列表乘法和 torch.cat 进行拼接
             new_speech_segment = torch.cat([speech_segment] * times, dim=0)
             speech_segments.append(new_speech_segment)
 
@@ -130,9 +121,8 @@ def subsegment(fbank, seg_id, window_fs, period_fs, frame_shift):
     num_frames, feat_dim = fbank.shape
     if seg_length <= window_fs:
         subseg = seg_id + "-{:08d}-{:08d}".format(0, seg_length)
-        #print(np.shape(fbank))
         subseg_fbank = np.resize(fbank, (window_fs, feat_dim))
-        #print(np.shape(subseg_fbank))
+
 
         subsegs.append(subseg)
         subseg_fbanks.append(subseg_fbank)
@@ -270,15 +260,8 @@ def VocalPrint_embeddings(audio_path,segments):
     utt_to_segments = read_segments(vad_result)
 
     speech_segments_id, speech_segments = get_speech_segments(utt_to_segments=utt_to_segments, wav_path=audio_path)
-    # print("speech_segments_id:",speech_segments_id)
-
-    # print(speech_segments)
     fbank_feat = {}
     for i, speech_seg in enumerate(speech_segments):
-        # print("speech_seg:",speech_seg)
-        # if len(speech_seg)==0:
-        #     t = []
-        #     return t
         fbank_feat[i] = compute_fbank(speech_seg, subseg_cmn=True)
     subsegs, subseg_fbanks = [], []
     frame_shift=10
@@ -290,7 +273,6 @@ def VocalPrint_embeddings(audio_path,segments):
         tmp_subsegs, tmp_subseg_fbanks = subsegment(fbank=fbank, seg_id=speech_segments_id[i], window_fs=window_fs, period_fs=period_fs, frame_shift=frame_shift)
         subsegs.extend(tmp_subsegs)
         subseg_fbanks.extend(tmp_subseg_fbanks)
-    print(len(fbank_feat))
     embeddings = extract_embedding(subseg_fbanks, batch_size=1, subseg_cmn=True)
     
     return embeddings
