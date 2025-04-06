@@ -1,4 +1,4 @@
-<<<<<<< main
+## main
 Egocentric Speaker Diarization with Vision-Guided Clustering and Adaptive Speech Re-detection
 
 > [Egocentric Speaker Diarization with Vision-Guided Clustering and Adaptive Speech Re-detection] coming soon <br>
