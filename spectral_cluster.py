@@ -8,7 +8,7 @@ from sklearn.cluster._kmeans import k_means
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import OPTICS
 from scipy.cluster.hierarchy import linkage, dendrogram,fcluster
-from cluster_test  import *
+
 
 
 

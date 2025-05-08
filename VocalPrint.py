@@ -52,18 +52,26 @@ def get_speech_segments(utt_to_segments, wav_path):
     audio_name = wav_path.split('/')[-1][:-4]
     segments = utt_to_segments[audio_name]
     signal, sr = torchaudio.load(wav_path)
+    print(signal.shape)
+    print(sr)
     signal = signal.squeeze()
+    print(signal.shape)
     for seg, begin, end in segments:
+        print(seg, begin, end)
         if end-begin > 0.4:
             speech_segments_id.append(seg)
+            print(seg)
             speech_segments.append(signal[int(begin * sr): int(end * sr)])
+            print(signal[int(begin * sr): int(end * sr)])
         else:
             speech_segments_id.append(seg)
             speech_segment = signal[int(begin * sr): int(end * sr)]
             times =int( 0.4/(end-begin) + 1 )
             new_speech_segment = torch.cat([speech_segment] * times, dim=0)
             speech_segments.append(new_speech_segment)
-
+    print(speech_segments)
+    print(len(speech_segments))
+    #print(speech_segments[0].shape)
     return speech_segments_id, speech_segments
 
 def get_asvmodel(checkpoint_path="./camplus.ckpt"):
