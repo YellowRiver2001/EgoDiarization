@@ -32,8 +32,8 @@ Then you will find
 ├── pyframes
 └── pywork
 ```
-in the demo, and we already put all speaker_global_EGO4d.txt in the dataset/asd
-and you need to put ego4d dataset's audio in the exp like this exp/test1/mid/0d4efcc9-a336-46f9-a1db-0623b5be2869
+in the demo, and we already put all 'speaker_global_EGO4d.txt' in the dataset/asd
+and you need to put ego4d dataset's audio in the exp like this 'exp/test1/mid/0d4efcc9-a336-46f9-a1db-0623b5be2869'
 then 
 ```
 python main.py
