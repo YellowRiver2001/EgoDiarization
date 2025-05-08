@@ -21,6 +21,9 @@ Testing
 ---
 Create a folder named `demo` inside the `Light-ASD` directory.
 Place your test video file(s) within the newly created `demo` folder.
+```
+sh crop.sh
+```
 Then you will find
 ```
 ├── pyavi
