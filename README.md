@@ -22,38 +22,24 @@ Testing
 Create a folder named `demo` inside the `Light-ASD` directory.
 Place your test video file(s) within the newly created `demo` folder.
 ```
-sh crop.sh
+python Light-ASD/Ego4d_global_demo_final.py
 ```
 Then you will find
 ```
 ├── pyavi
-│   ├── audio.wav (Audio from input video)
-│   ├── video.avi (Copy of the input video)
-│   ├── video_only.avi (Output video without audio)
-│   └── video_out.avi  (Output video with audio)
-├── pycrop (The detected face videos and audios)
-│   ├── 000000.avi
-│   ├── 000000.wav
-│   ├── 000001.avi
-│   ├── 000001.wav
-│   └── ...
-├── pyframes (All the video frames in this video)
-│   ├── 000001.jpg
-│   ├── 000002.jpg
-│   └── ...	
+│   ├──speaker_global_EGO4d.txt(is used in next step)
+├── pycrop
+├── pyframes
 └── pywork
-    ├── faces.pckl (face detection result)
-    ├── scene.pckl (scene detection result)
-    ├── scores.pckl (ASD result)
-    └── tracks.pckl (face tracking result)
 ```
-in the demo
-
+in the demo, and we already put all speaker_global_EGO4d.txt in the dataset/asd
+and you need to put ego4d dataset's audio in the exp like this exp/test1/mid/0d4efcc9-a336-46f9-a1db-0623b5be2869
+then 
 ```
 python main.py
 ```
+you can get the DER output
 
-our data is prepared, if you want to get the data from Ego4D dataset, you can use Light-ASD first to get speaker number probability
 
 Model download
 ---  
