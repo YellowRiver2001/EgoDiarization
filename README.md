@@ -23,26 +23,26 @@ Create a folder named `demo` inside the `Light-ASD` directory.
 Place your test video file(s) within the newly created `demo` folder.
 Then you will find
 ```
-	# ├── pyavi
-	# │   ├── audio.wav (Audio from input video)
-	# │   ├── video.avi (Copy of the input video)
-	# │   ├── video_only.avi (Output video without audio)
-	# │   └── video_out.avi  (Output video with audio)
-	# ├── pycrop (The detected face videos and audios)
-	# │   ├── 000000.avi
-	# │   ├── 000000.wav
-	# │   ├── 000001.avi
-	# │   ├── 000001.wav
-	# │   └── ...
-	# ├── pyframes (All the video frames in this video)
-	# │   ├── 000001.jpg
-	# │   ├── 000002.jpg
-	# │   └── ...	
-	# └── pywork
-	#     ├── faces.pckl (face detection result)
-	#     ├── scene.pckl (scene detection result)
-	#     ├── scores.pckl (ASD result)
-	#     └── tracks.pckl (face tracking result)
+├── pyavi
+│   ├── audio.wav (Audio from input video)
+│   ├── video.avi (Copy of the input video)
+│   ├── video_only.avi (Output video without audio)
+│   └── video_out.avi  (Output video with audio)
+├── pycrop (The detected face videos and audios)
+│   ├── 000000.avi
+│   ├── 000000.wav
+│   ├── 000001.avi
+│   ├── 000001.wav
+│   └── ...
+├── pyframes (All the video frames in this video)
+│   ├── 000001.jpg
+│   ├── 000002.jpg
+│   └── ...	
+└── pywork
+    ├── faces.pckl (face detection result)
+    ├── scene.pckl (scene detection result)
+    ├── scores.pckl (ASD result)
+    └── tracks.pckl (face tracking result)
 ```
 in the demo
 
