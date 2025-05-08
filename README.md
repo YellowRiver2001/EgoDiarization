@@ -12,7 +12,6 @@ Our paper is accepted by **ICASSP-2025**
 ![image](https://github.com/yu-haoyuan/EgoDiarization/blob/main/fig1.png)
 
 
-=======
 ## Environment：
 ```python
 pip install -r requirements.txt
