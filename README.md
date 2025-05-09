@@ -17,7 +17,20 @@ Our paper is accepted by **ICASSP-2025**
 pip install -r requirements.txt
 ```
 
-Testing
+Model download
+---  
+download camplus.ckpt in `https://drive.google.com/file/d/1CMrfXCiJT2VRIM1qAKEM-FWd3Cno_23C/view?usp=drive_link` ,put it in the current folder.  
+download sfd_face.pth in `https://drive.google.com/file/d/1hd6QgCeJkeBWJ8rkTnOYSh3sthw_j8rH/view?usp=drive_link` ,put it in the `./model/faceDetector/s3fd/` 
+
+Demo
+---
+one video save in `Light-ASD/demo` and
+```
+python demo.py --videoName 0001.avi
+```
+can get a demo output
+
+Evaluation
 ---
 Create a folder named `demo` inside the `Light-ASD` directory.
 Place your test video file(s) within the newly created `demo` folder.
@@ -41,10 +54,7 @@ python main.py
 you can get the DER output
 
 
-Model download
----  
-download camplus.ckpt in `https://drive.google.com/file/d/1CMrfXCiJT2VRIM1qAKEM-FWd3Cno_23C/view?usp=drive_link` ,put it in the current folder.  
-download sfd_face.pth in `https://drive.google.com/file/d/1hd6QgCeJkeBWJ8rkTnOYSh3sthw_j8rH/view?usp=drive_link` ,put it in the `./model/faceDetector/s3fd/` 
+
 
 
 Citation
