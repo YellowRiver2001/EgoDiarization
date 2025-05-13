@@ -14,12 +14,12 @@ from mytools import copyasd
 # from funasr import AutoModel
 import argparse
 
-# Specify the local model folder path
-local_model_path = "/home/rx/.cache/modelscope/hub/iic/speech_fsmn_vad_zh-cn-16k-common-pytorch/model.pt"
+# # Specify the local model folder path
+# local_model_path = "/home/rx/.cache/modelscope/hub/iic/speech_fsmn_vad_zh-cn-16k-common-pytorch/model.pt"
 
-# Check if the local path exists
-if not os.path.exists(local_model_path):
-    raise FileNotFoundError(f"Local model path {local_model_path} does not exist!")
+# # Check if the local path exists
+# if not os.path.exists(local_model_path):
+#     raise FileNotFoundError(f"Local model path {local_model_path} does not exist!")
 
 # model = AutoModel(model = local_model_path, init_param = 1)
 
