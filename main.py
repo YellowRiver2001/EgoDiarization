@@ -167,7 +167,7 @@ def main():
     speaker_error_rates = []
     for a in [0.9]:
         # num_test means Ablation study
-        num_test = 11
+        num_test = 5
         for file_no in video_nums:
             fn = filenames[file_no].split('.')[0]
             save_path = args.exp
