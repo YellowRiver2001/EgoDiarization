@@ -3,9 +3,8 @@ from pyannote.audio.tasks import SpeakerDiarization
 from pyannote.audio.core.inference import Inference
 import numpy as np
 
-# MODEL_PATH="VAD/Ego4D.ckpt"   
-MODEL_PATH = "VAD/powerset_pretrained.ckpt"
-#MODEL_PATH = "VAD/multilabel_pretrained.ckpt"
+# MODEL_PATH="VAD/Ego4D.ckpt"   #在Ego4d上微调后的预训练模型
+MODEL_PATH = "VAD/powerset_pretrained.ckpt"  #没有微调的预训练模型
 model : SpeakerDiarization = Model.from_pretrained(MODEL_PATH)
 
 
